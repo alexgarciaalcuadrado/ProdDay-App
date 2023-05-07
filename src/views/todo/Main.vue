@@ -1,6 +1,6 @@
 <template>
   <div class="border rounded shadow pt-3 mt-3 w-50 main-container">
-    <h1 class="text-center text-primary mb-4">My TODO List</h1>
+    <h1 class="text-center title-page">Steps to a productive day</h1>
     <todo-entry
       :title="todoTitle"
       @input="onChangeEntryHandler"
@@ -30,11 +30,12 @@ import { ref, onMounted } from 'vue';
 //components
 import { TodoEntry, TodoRow } from './components';
 
-//services
-import todoService from '@/services/todo.service';
-
 //types
 import { Todo } from '../../services/types';
+
+import { useStore } from 'vuex';
+import { v4 as uuidv4 } from 'uuid';
+const store = useStore();
 
 //reactive properties
 const todos = ref<Todo[]>([]);
@@ -47,8 +48,8 @@ const RECORDS_SIZE = 15;
 
 //methods
 const fetchTodos = async () => {
-  const response: Todo[] = await todoService.getTodos();
-  todos.value = response.slice(0, RECORDS_SIZE);
+  const list: Todo[] = store.getters.list;
+  todos.value = list.slice(0, RECORDS_SIZE);
 };
 
 const onCheckHandler = async (todo: Todo) => {
@@ -59,7 +60,7 @@ const onCheckHandler = async (todo: Todo) => {
     };
 
     if (!todo.isManually) {
-      await todoService.updateTodo(todo.id, payload);
+      store.commit('updateTodo', payload);
     }
 
     //set record as completed
@@ -78,9 +79,9 @@ const onEditHandler = async (todoIndex: number, todo: Todo) => {
 };
 
 const onDeleteHandler = async (todoIndex: number, todo: Todo) => {
-  if (!todo.isManually) await todoService.deleteTodo(todo.id);
-
   todos.value.splice(todoIndex, 1);
+
+  store.commit('deleteTodo', todo);
 
   clearSelectedTodo();
 };
@@ -98,17 +99,20 @@ const onSaveHandler = async () => {
       completed: selectedTodo.value?.completed ?? false,
       isManually: !selectedTodo.value?.isManually,
     };
-
     //add new
     if (!selectedTodo.value?.id) {
-      const response = await todoService.addTodo(payload);
-      if (response) {
-        todos.value.unshift(response);
+      store.commit('addTodo', {
+        id: uuidv4(),
+        ...payload,
+      });
+      const newList = store.getters.list;
+      if (newList) {
+        fetchTodos();
       }
     } else {
       //update existing
       if (!selectedTodo.value?.isManually) {
-        await todoService.updateTodo(selectedTodo.value?.id, payload);
+        store.commit('updateTodo', { ...payload, id: selectedTodo.value?.id });
       }
       todos.value[selectedTodoIndex.value!!].title = payload.title;
     }
@@ -123,11 +127,27 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.cursor-pointer {
-  cursor: pointer;
+.main-container {
+  padding: 30px;
+  width: 900px;
+  min-height: 400px;
+  background-color: white;
+  -webkit-border-radius: 53px;
+  -webkit-border-top-right-radius: 7px;
+  -webkit-border-bottom-left-radius: 7px;
+  -moz-border-radius: 53px;
+  -moz-border-radius-topright: 7px;
+  -moz-border-radius-bottomleft: 7px;
+  border-radius: 53px !important;
+  border-top-right-radius: 7px !important;
+  border-bottom-left-radius: 7px !important;
 }
 
-@media (max-width: 767px) {
+.title-page{
+  font-weight: 200;
+}
+
+@media (max-width: 1100px) {
   .main-container {
     width: 95% !important;
   }

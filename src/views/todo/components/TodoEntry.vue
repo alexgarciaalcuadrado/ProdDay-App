@@ -3,16 +3,16 @@
     <input
       :value="props.title"
       type="text"
-      class="form-control p-3"
-      placeholder="Type something..."
+      class="form-control p-3 input"
+      placeholder="Add new step"
       @keyup.enter="onSaveHandler"
       @input="emits('input', $event.target.value)"
     />
     <div
-      class="bg bg-primary text-white p-3 cursor-pointer"
+      class="button"
       @click="onSaveHandler"
     >
-      Save
+      Add
     </div>
   </div>
 </template>
@@ -48,17 +48,25 @@ const onSaveHandler = () => {
 
 <style scoped lang="scss">
 .input-box {
-  background: #7f8c8d;
-  input[type='text'] {
-    border: unset;
-    background: transparent;
-    color: white;
-    &::placeholder {
-      color: #bdc3c7;
-    }
+  height: 40px;
+  margin: 10px;
+}
+
+.input{
+  margin-right: 10px;  
+  &:focus{
+    box-shadow: -5px 8px 0 -1px rgb(109 117 130 / 25%);
   }
 }
-.cursor-pointer {
+
+.button {
+  padding: 10px 20px;
+  background-color: #66b949;
+  border-radius: 25px;
+  color: white;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
   cursor: pointer;
 }
 </style>
